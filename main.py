@@ -61,11 +61,33 @@ class GenAlgorithm:
         else:
             self.W_s = None
 
+    def mkCruce(W1, W2):
+
+        N = W1.shape[0]
+        nW = [0]*N
+        for i in (N):
+            nw[i] = W1[i]
+
+
+        return nW
+
     def train(self, X, Y):
         """Función que realiza el proceso de entrenamiento, recibe el vector de datos de entrenamiento y el vector con
            la clase a la que corresponde cada uno de los datos. Aquí se entrena el Algoritmo Genético."""
         self.X = X
         self.Y = Y
+
+        # Generar W's
+
+        # Calcular Loss, general y por clase
+
+        # Selección de W's para cruce.
+
+        # Hacer cruce
+
+        # Hacer mutación
+
+        # Una vez obtenida la nueva generación de W's, empezar el proceso de nuevo.
 
     def classify(self, X):
         """Función que implementa el proceso de clasificación una vez obtenida la W definiva, recibe el vector con los datos de prueba.
@@ -115,6 +137,8 @@ def plotGrayImage(img):
 
 def main():
 
+    genAlg = GenAlgorithm
+
     #----- Iris -----#
 
 
@@ -130,11 +154,10 @@ def main():
     testX = test['data']
     testY = test['labels']
 
-    genAlg = GenAlgorithm
     #genAlg.train(X,Y)
 
     #plotGrayImage(RGBtoGrayscale(X[123]))
 
-    #genAlg.classify
+    #genAlg.classify(test)
 
 main()
