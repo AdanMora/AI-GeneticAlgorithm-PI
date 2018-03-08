@@ -30,7 +30,7 @@ class GenAlgorithm:
         lossTotal = 0
         N = self.X.shape[0]
         for i in range(N):
-            lossTotal = hingeLoss_i(w, self.X[i], self.Y[i])
+            lossTotal += self.hingeLoss_i(w, self.X[i], self.Y[i])
             
         return lossTotal / N
 
