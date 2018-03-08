@@ -109,9 +109,11 @@ def main():
     testX = test['data']
     testY = test['labels']
 
-    genAlg = GenAlgorithm
+    #genAlg = GenAlgorithm
     #genAlg.train(X,Y)
-
+    a = RGBtoGrayscale(X[0])
+    print(a)
+    print(len(a))
     #plotGrayImage(RGBtoGrayscale(X[123]))
 
     #genAlg.classify

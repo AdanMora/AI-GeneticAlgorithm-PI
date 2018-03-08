@@ -1,8 +1,8 @@
 import numpy as np
 
-setosa, versicolor, virginica = 0,1,2
-sepal_length_i, sepal_width_i, petal_length_i, petal_width_i = 0,1,2,3
-mini, maxi = 0,1
+setosa, versicolor, virginica = range(3)
+sepal_length_i, sepal_width_i, petal_length_i, petal_width_i = range(4)
+mini, maxi = range(1)
 
 # Valores obtenidos a partir del set de datos iris
 setosa_values = [[4.3,5.8],[2.3,4.4],[1.0,1.9],[0.1,0.6]]
@@ -32,4 +32,4 @@ def generateWs(n):
         ws.append(generateW())
     return np.array(ws)
 
-print(len(generateWs(150)))
+#print(len(generateWs(150)))
