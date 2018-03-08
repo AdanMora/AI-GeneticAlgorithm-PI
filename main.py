@@ -16,10 +16,11 @@ class GenAlgorithm:
     Y = None
     W = None
     W_s = []
-    hyperparameters = {}
+    hyperparameters = []
 
     def addHyperparameter(name, cantWs, gen, cant_menosAptos, minAceptacion):
-        """Recibe nombre, cantidad de W's, cant de generaciones, cant de cruces con menos aptos, mínimo de aceptación para terminar."""
+        """Recibe nombre, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
+           mínimo de aceptación para terminar."""
         nHyperParameter = {}
         nHyperParameter["name"] = name
         nHyperParameter["cant_W's"] = cantWs
@@ -27,7 +28,7 @@ class GenAlgorithm:
         nHyperParameter["cant_MenosAptos"] = cant_menosAptos
         nHyperParameter["min_Aceptacion"] = minAceptacion
 
-        self.hyperparameters["hyperparameter_" + str(len(self.hyperparameters) + 1)] = nHyperParameter
+        self.hyperparameters.append(nHyperParameter)
 
     def hingeLoss_i(self, w, x, y):
         resultF_WX = np.dot(w,x)
