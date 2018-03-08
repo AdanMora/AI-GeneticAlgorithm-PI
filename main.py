@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+from sklearn.datasets import load_iris
 
 #-------------------------------------------------------------------------------------------------------#
 
@@ -18,7 +19,7 @@ class GenAlgorithm:
     W_s = []
     hyperparameters = []
 
-    def addHyperparameter(name, cantWs, gen, cant_menosAptos, minAceptacion):
+    def addHyperparameter(self, name, cantWs, gen, cant_menosAptos, minAceptacion):
         """Recibe nombre, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
            mínimo de aceptación para terminar."""
         nHyperParameter = {}
@@ -40,7 +41,6 @@ class GenAlgorithm:
         return individual_Loss
     
     def hingeLoss_W(self, w):
-        def hingeLoss_W(self, w):
         lossClases = [(0,0)] * w.shape[0]
         lossTotal = 0
         N = self.X.shape[0]
@@ -52,6 +52,7 @@ class GenAlgorithm:
 
         for i in range(len(lossClases)):
             lossClases[i][0] /= lossClases[i][1]
+        
             
         return lossTotal / N
 
@@ -61,7 +62,7 @@ class GenAlgorithm:
         else:
             self.W_s = None
 
-    def mkCruce(W1, W2):
+    def mkCruce(self, W1, W2):
 
         N = W1.shape[0]
         nW = [0]*N
@@ -79,7 +80,11 @@ class GenAlgorithm:
 
         # Generar W's
 
+        genW_s(0)
+
         # Calcular Loss, general y por clase
+
+        
 
         # Selección de W's para cruce.
 
@@ -124,6 +129,7 @@ def plotGrayImage(img):
 
     ind = 0
     m = []
+    print(img)
     for i in range(32):
         f = []
         for j in range(32):
@@ -141,23 +147,52 @@ def main():
 
     #----- Iris -----#
 
+    iris = load_iris()
+
+    X = iris['data']
+    Y = iris['target']
+
+    testX = X[50:55]
+    X = np.concatenate((X[:50],X[55:]))
+    testX = np.concatenate((testX,X[:5]))
+    X = X[5:]
+    testX = np.concatenate((testX,X[X.shape[0] - 5:]))
+    X = X[:X.shape[0] - 5]
+    
+
+    testY = Y[50:55]
+    Y = np.concatenate((Y[:50],Y[55:]))
+    testY = np.concatenate((testY,Y[:5]))
+    Y = Y[5:]
+    testY = np.concatenate((testY,Y[Y.size - 5:]))
+    Y = Y[:Y.size - 5]
+
+    genAlg.addHyperparameter("IRIS_1", 200, 10, 0.1, 2)
+    genAlg.addHyperparameter("IRIS_2", 100, 10, 0.05, 2)
+
+    genAlg.train(X, Y)
+
+    genAlg.classify(testX)
 
     #----- CIFAR-10 -----#
 
-    train = unpickle("train.p")
+    """train = unpickle("train.p")
     test = unpickle("test.p")
 
 
     X = train['data']
+    X = np.apply_along_axis(RGBtoGrayscale, 1, X)
     Y = train['labels']
 
     testX = test['data']
+    testX = np.apply_along_axis(RGBtoGrayscale, 1, X)
     testY = test['labels']
 
-    #genAlg.train(X,Y)
+    genAlg.addHyperparameter("CIFAR_1", 4000, 10, 0.1, 2)
+    genAlg.addHyperparameter("CIFAR_2", 2000, 10, 0.05, 2)
 
-    #plotGrayImage(RGBtoGrayscale(X[123]))
+    genAlg.train(X, Y)
 
-    #genAlg.classify(test)
+    genAlg.classify(testX)"""
 
 main()
