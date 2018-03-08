@@ -17,7 +17,7 @@ def generateRoW(flower):
     petal_length = np.random.uniform(low=values[petal_length_i][mini],high=values[petal_length_i][maxi],size=(1,))
     petal_width = np.random.uniform(low=values[petal_width_i][mini],high=values[petal_width_i][maxi],size=(1,))
 
-    return np.append(np.concatenate((sepal_length,sepal_width,petal_length,petal_width)),[flower])
+    return np.concatenate((sepal_length,sepal_width,petal_length,petal_width))
 
 def generateW():
     row1 = generateRoW(setosa)
