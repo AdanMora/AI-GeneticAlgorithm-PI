@@ -27,10 +27,18 @@ class GenAlgorithm:
         return individual_Loss
     
     def hingeLoss_W(self, w):
+        def hingeLoss_W(self, w):
+        lossClases = [(0,0)] * w.shape[0]
         lossTotal = 0
         N = self.X.shape[0]
         for i in range(N):
-            lossTotal += self.hingeLoss_i(w, self.X[i], self.Y[i])
+            L_i = self.hingeLoss_i(w, self.X[i], self.Y[i])
+            lossTotal += L_i
+            lossClases[self.Y[i]][0] += L_i  # Suma del Loss para la clase sub_i
+            lossClases[self.Y[i]][1] += 1    # Contador de X's de esa clase
+
+        for i in range(len(lossClases)):
+            lossClases[i][0] /= lossClases[i][1]
             
         return lossTotal / N
 
