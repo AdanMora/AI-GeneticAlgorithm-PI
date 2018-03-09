@@ -37,4 +37,3 @@ def generateIndividuos(ws):
     return np.array(ws,dtype=tipo)
 
 a = generateWs(3)
-print(a[0]["Li"])

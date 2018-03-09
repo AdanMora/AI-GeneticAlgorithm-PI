@@ -47,38 +47,34 @@ class GenAlgorithm:
         return individual_Loss
     
     def hingeLoss_W(self, w):
-        lossClases = [(0,0)] * w.shape[0]
+        lossClases = [[0,0]] * w["w"].shape[0]
         lossTotal = 0
         N = self.X.shape[0]
         for i in range(N):
-            L_i = self.hingeLoss_i(w, self.X[i], self.Y[i])
+            L_i = self.hingeLoss_i(w["w"], self.X[i], self.Y[i])
             lossTotal += L_i
             lossClases[self.Y[i]][0] += L_i  # Suma del Loss para la clase sub_i
             lossClases[self.Y[i]][1] += 1    # Contador de X's de esa clase
 
         for i in range(len(lossClases)):
-            lossClases[i][0] /= lossClases[i][1]
-        
-        
-        return lossTotal / N
+            w["Li"][i] = lossClases[i][0] / lossClases[i][1]
+            
+        w["L"] = lossTotal / N
 
     def genW_s(self):
         # tipo 0 -> iris
-        if not (actual_hyper["tipo"]):
-            self.W_s = wiris.generateWs(actual_hyper["cant_W's"])
+        if not (self.actual_hyper["tipo"]):
+            self.W_s = wiris.generateWs(self.actual_hyper["cant_W's"])
             self.tipoD = wiris.tipo
         else:
-            self.W_s = wifar.generateWs(actual_hyper["cant_W's"],4)
+            self.W_s = wifar.generateWs(self.actual_hyper["cant_W's"],4)
             self.tipoD = wifar.tipo
 
     def mkCruce(self, W1, W2):
         N = W1["w"].shape[0]
         nW = [0]*N
         for i in range(N):
-            if (W1["Li"][i] > W2["Li"][i]):
-                nW[i] = W1["w"][i]
-            else:
-                nW[i] = W2["w"][i]
+            nW[i] = np.concatenate((W1["w"][i][:N//2],W2["w"][i][N//2:]))
         return np.array((nW,0,[0]*N), dtype = self.tipoD)
 
     def train(self, X, Y):
@@ -87,39 +83,52 @@ class GenAlgorithm:
         self.X = X
         self.Y = Y
 
+
         # Generar W's
 
-        self.genW_s(actual_hyper["tipo"])
+        self.genW_s()
 
         # Calcular Loss, general y por clase
         ## ...
-        for i in range(actual_hyper["cant_Gen"]):
+        count = 0
+        for i in range(self.actual_hyper["cant_Gen"]):
+            count += 1
             newW_s = []
-            
-            self.hingeLoss_W()
+
+            for i in range(self.W_s.shape[0]):
+                self.hingeLoss_W(self.W_s[i])
+                
             self.W_s = np.sort(self.W_s, order="L")
 
-            masAptos = self.W_s[int(:self.W_s.shape[0]*0.5)]
+            masAptos = self.W_s[:int(self.W_s.shape[0]*0.5)]
 
-            if (masAptos[0]["L"] <= actual_hyper["min_Aceptacion"]) or (masAptos.shape[0] < 3):
-                self.W = masAptos[0]["w"]
+            if (masAptos[0]["L"] <= self.actual_hyper["min_Aceptacion"]) or (masAptos.shape[0] < 3):
                 break
 
-            menosAptos = self.W_s[int(self.W_s.shape[0]*actual_hyper["cant_MenosAptos"]:)]
+            indMenosAptos = self.W_s.shape[0] - int(self.W_s.shape[0]*self.actual_hyper["cant_MenosAptos"])
+            menosAptos = self.W_s[indMenosAptos:]
 
             N_masAptos = masAptos.shape[0]
             N_menosAptos = menosAptos.shape[0]
 
             diferencia = N_masAptos - N_menosAptos
+
+            cruce1 = masAptos[:diferencia]
+            cruce2 = masAptos[diferencia:]
+
             
-            for i in range(N_masAptos):
-                newW_s.append(mkCruce(masAptos[i], masAptos[i + 1]))
+            for i in range(cruce1.shape[0] - 1):
+                newW_s.append(self.mkCruce(cruce1[i], cruce1[i + 1]))
                 
-            for i in range(diferencia, diferencia + N_menosAptos):
-                newW_s.append(mkCruce(masAptos[i], menosAptos[i - (N_menosAptos + 1)]))
+            for i in range(N_menosAptos):
+                newW_s.append(self.mkCruce(cruce2[i], menosAptos[i]))
 
 
             self.W_s = np.array(newW_s)
+
+        print(count)
+            
+        self.W = masAptos[0]
 
         
                 
@@ -139,7 +148,7 @@ class GenAlgorithm:
            Retorna un vector con las respuetas predecidas correspondientes a cada dato de prueba"""
         predict_Y = []
         for i in range(X.shape[0]):
-            predict_Y.append(np.argmax(np.dot(self.W,X[i])))
+            predict_Y.append(np.argmax(np.dot(self.W["w"],X[i])))
         return predict_Y
 
 #-------------------------------------------------------------------------------------------------------#
@@ -183,7 +192,7 @@ def plotGrayImage(img):
 
 def main():
 
-    genAlg = GenAlgorithm
+    genAlg = GenAlgorithm()
 
     #----- Iris -----#
 
@@ -207,12 +216,22 @@ def main():
     testY = np.concatenate((testY,Y[Y.size - 5:]))
     Y = Y[:Y.size - 5]
 
-    genAlg.addHyperparameter(0, 200, 10, 0.1, 2)
-    genAlg.addHyperparameter(0, 100, 10, 0.05, 2)
+    genAlg.addHyperparameter(0, 400, 10, 0.1, 2.0)
+    genAlg.addHyperparameter(0, 100, 10, 0.05, 2.0)
+
+    genAlg.actual_hyper = genAlg.hyperparameters[0]
 
     genAlg.train(X, Y)
 
-    genAlg.classify(testX)
+    predict_Y = genAlg.classify(testX)
+
+    print(genAlg.W["w"])
+    print(genAlg.W["L"])
+    print(genAlg.W["Li"])
+
+    print(predict_Y)
+    print(testY)
+    
 
     #----- CIFAR-10 -----#
 

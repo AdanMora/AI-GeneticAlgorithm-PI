@@ -25,8 +25,3 @@ def generateWs(n,classes):
 
 def generateIndividuos(ws):
     return np.array(ws,dtype=tipo)
-
-
-a = generateWs(4,4)
-#print(a[0]["Li"])
-#print(len(a))
