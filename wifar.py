@@ -3,6 +3,10 @@ import numpy as np
 mini = 0
 maxi = 255
 
+# self.type = np.dtype([("image",np.float64), ("label", np.str_,16)])
+tipo = np.dtype([("w",np.float32,(4,1024)),("L",np.float32),("Li",np.float32,(4,))])
+
+
 def generateRoW():
     return np.random.uniform(low=mini,high=maxi,size=(1024,))
     #return 
@@ -16,9 +20,13 @@ def generateW(classes):
 def generateWs(n,classes):
     ws = []
     for i in range(n):
-        ws.append(generateW(classes))
-    return np.array(ws)
+        ws.append((generateW(classes),0,[0,0,0,0]))
+    return np.array(ws,dtype=tipo)
 
-a = generateWs(4,3)
-#print(a[0])
-print(len(a))
+def generateIndividuos(ws):
+    return np.array(ws,dtype=tipo)
+
+
+a = generateWs(4,4)
+#print(a[0]["Li"])
+#print(len(a))

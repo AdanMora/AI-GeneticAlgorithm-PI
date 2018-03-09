@@ -1,6 +1,8 @@
 import numpy as np
 import pickle
 from sklearn.datasets import load_iris
+import wifar
+import wiris
 
 #-------------------------------------------------------------------------------------------------------#
 
@@ -18,16 +20,18 @@ class GenAlgorithm:
     W = None
     W_s = []
     hyperparameters = []
+    actual_hyper = {}
 
     def addHyperparameter(self, name, cantWs, gen, cant_menosAptos, minAceptacion):
         """Recibe nombre, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
            mínimo de aceptación para terminar."""
         nHyperParameter = {}
-        nHyperParameter["name"] = name
+        nHyperParameter["tipo"] = name
         nHyperParameter["cant_W's"] = cantWs
         nHyperParameter["cant_Gen"] = gen
         nHyperParameter["cant_MenosAptos"] = cant_menosAptos
         nHyperParameter["min_Aceptacion"] = minAceptacion
+        #nHyperParameter["clases"] = clases
 
         self.hyperparameters.append(nHyperParameter)
 
@@ -53,14 +57,15 @@ class GenAlgorithm:
         for i in range(len(lossClases)):
             lossClases[i][0] /= lossClases[i][1]
         
-            
+        
         return lossTotal / N
 
     def genW_s(self, tipo):
+        # tipo 0 -> iris
         if(tipo == 0):
-            self.W_s = None
+            self.W_s = wiris.generateWs(actual_hyper["cant_W's"])
         else:
-            self.W_s = None
+            self.W_s = wifar.generateWs(actual_hyper["cant_W's"],4)
 
     def mkCruce(self, W1, W2):
 
@@ -72,7 +77,7 @@ class GenAlgorithm:
 
         return nW
 
-    def train(self, X, Y):
+    def train(self, X, Y, tipo):
         """Función que realiza el proceso de entrenamiento, recibe el vector de datos de entrenamiento y el vector con
            la clase a la que corresponde cada uno de los datos. Aquí se entrena el Algoritmo Genético."""
         self.X = X
@@ -80,12 +85,15 @@ class GenAlgorithm:
 
         # Generar W's
 
-        genW_s(0)
+        self.genW_s(actual_hyper["tipo"])
 
         # Calcular Loss, general y por clase
+        ## ...
+        n = len(self.genW_s)
+        for i in range(actual_hyper["cant_Gen"]):
 
         
-
+        #self.
         # Selección de W's para cruce.
 
         # Hacer cruce
