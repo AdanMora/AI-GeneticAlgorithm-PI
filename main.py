@@ -4,6 +4,8 @@ from sklearn.datasets import load_iris
 import wifar
 import wiris
 
+
+
 #-------------------------------------------------------------------------------------------------------#
 
 class Iris_Enum:
@@ -21,17 +23,17 @@ class GenAlgorithm:
     W_s = []
     hyperparameters = []
     actual_hyper = {}
+    tipoD = None
 
-    def addHyperparameter(self, name, cantWs, gen, cant_menosAptos, minAceptacion):
-        """Recibe nombre, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
+    def addHyperparameter(self, tipo, cantWs, gen, cant_menosAptos, minAceptacion):
+        """Recibe tipo, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
            mínimo de aceptación para terminar."""
         nHyperParameter = {}
-        nHyperParameter["tipo"] = name
+        nHyperParameter["tipo"] = tipo        
         nHyperParameter["cant_W's"] = cantWs
         nHyperParameter["cant_Gen"] = gen
         nHyperParameter["cant_MenosAptos"] = cant_menosAptos
         nHyperParameter["min_Aceptacion"] = minAceptacion
-        #nHyperParameter["clases"] = clases
 
         self.hyperparameters.append(nHyperParameter)
 
@@ -60,24 +62,26 @@ class GenAlgorithm:
         
         return lossTotal / N
 
-    def genW_s(self, tipo):
+    def genW_s(self):
         # tipo 0 -> iris
-        if(tipo == 0):
+        if not (actual_hyper["tipo"]):
             self.W_s = wiris.generateWs(actual_hyper["cant_W's"])
+            self.tipoD = wiris.tipo
         else:
             self.W_s = wifar.generateWs(actual_hyper["cant_W's"],4)
+            self.tipoD = wifar.tipo
 
     def mkCruce(self, W1, W2):
-
-        N = W1.shape[0]
+        N = W1["w"].shape[0]
         nW = [0]*N
-        for i in (N):
-            nw[i] = W1[i]
+        for i in range(N):
+            if (W1["Li"][i] > W2["Li"][i]):
+                nW[i] = W1["w"][i]
+            else:
+                nW[i] = W2["w"][i]
+        return np.array((nW,0,[0]*N), dtype = self.tipoD)
 
-
-        return nW
-
-    def train(self, X, Y, tipo):
+    def train(self, X, Y):
         """Función que realiza el proceso de entrenamiento, recibe el vector de datos de entrenamiento y el vector con
            la clase a la que corresponde cada uno de los datos. Aquí se entrena el Algoritmo Genético."""
         self.X = X
@@ -89,9 +93,37 @@ class GenAlgorithm:
 
         # Calcular Loss, general y por clase
         ## ...
-        n = len(self.genW_s)
         for i in range(actual_hyper["cant_Gen"]):
+            newW_s = []
+            
+            self.hingeLoss_W()
+            self.W_s = np.sort(self.W_s, order="L")
 
+            masAptos = self.W_s[int(:self.W_s.shape[0]*0.5)]
+
+            if (masAptos[0]["L"] <= actual_hyper["min_Aceptacion"]) or (masAptos.shape[0] < 3):
+                self.W = masAptos[0]["w"]
+                break
+
+            menosAptos = self.W_s[int(self.W_s.shape[0]*actual_hyper["cant_MenosAptos"]:)]
+
+            N_masAptos = masAptos.shape[0]
+            N_menosAptos = menosAptos.shape[0]
+
+            diferencia = N_masAptos - N_menosAptos
+            
+            for i in range(N_masAptos):
+                newW_s.append(mkCruce(masAptos[i], masAptos[i + 1]))
+                
+            for i in range(diferencia, diferencia + N_menosAptos):
+                newW_s.append(mkCruce(masAptos[i], menosAptos[i - (N_menosAptos + 1)]))
+
+
+            self.W_s = np.array(newW_s)
+
+        
+                
+                
         
         #self.
         # Selección de W's para cruce.
@@ -175,8 +207,8 @@ def main():
     testY = np.concatenate((testY,Y[Y.size - 5:]))
     Y = Y[:Y.size - 5]
 
-    genAlg.addHyperparameter("IRIS_1", 200, 10, 0.1, 2)
-    genAlg.addHyperparameter("IRIS_2", 100, 10, 0.05, 2)
+    genAlg.addHyperparameter(0, 200, 10, 0.1, 2)
+    genAlg.addHyperparameter(0, 100, 10, 0.05, 2)
 
     genAlg.train(X, Y)
 
@@ -196,8 +228,8 @@ def main():
     testX = np.apply_along_axis(RGBtoGrayscale, 1, X)
     testY = test['labels']
 
-    genAlg.addHyperparameter("CIFAR_1", 4000, 10, 0.1, 2)
-    genAlg.addHyperparameter("CIFAR_2", 2000, 10, 0.05, 2)
+    genAlg.addHyperparameter(1, 4000, 10, 0.1, 2)
+    genAlg.addHyperparameter("1, 2000, 10, 0.05, 2)
 
     genAlg.train(X, Y)
 
