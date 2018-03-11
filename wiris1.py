@@ -1,6 +1,6 @@
 import numpy as np
 
-tipo = np.dtype([("w",np.float32,(3,4)),("L",np.float32),("Li",np.float32,(3,))])
+tipo = np.dtype([("w",np.float32,(3,4)),("E",np.float32),("L",np.float32),("Li",np.float32,(3,))])
 
 def generateRoW():
     #values = iris_values[flower]
@@ -23,7 +23,7 @@ def generateW():
 def generateWs(n):
     ws = []
     for i in range(n):
-        ws.append((generateW(),0,[0,0,0]))
+        ws.append((generateW(),0,0,[0,0,0]))
     return np.array(ws,dtype=tipo)
 
 def generateIndividuos(ws):

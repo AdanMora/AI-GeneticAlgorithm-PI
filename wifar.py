@@ -4,7 +4,7 @@ mini = 0
 maxi = 255
 
 # self.type = np.dtype([("image",np.float64), ("label", np.str_,16)])
-tipo = np.dtype([("w",np.float32,(4,1024)),("L",np.float32),("Li",np.float32,(4,))])
+tipo = np.dtype([("w",np.float32,(4,1024)),("E",np.float32),("L",np.float32),("Li",np.float32,(4,))])
 
 
 def generateRoW():
@@ -20,7 +20,7 @@ def generateW(classes):
 def generateWs(n,classes):
     ws = []
     for i in range(n):
-        ws.append((generateW(classes),0,[0,0,0,0]))
+        ws.append((generateW(classes),0,0,[0,0,0,0]))
     return np.array(ws,dtype=tipo)
 
 def generateIndividuos(ws):
