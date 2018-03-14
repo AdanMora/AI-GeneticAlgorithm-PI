@@ -24,6 +24,7 @@ class GenAlgorithm:
     hyperparameters = []
     actual_hyper = {}
     tipoD = None
+    EficienciaW_Apto = []
 
     def addHyperparameter(self, tipo, cantWs, gen, cant_menosAptos, minAceptacion):
         """Recibe tipo, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
@@ -48,19 +49,11 @@ class GenAlgorithm:
     
     def hingeLoss_W(self, w):
         #print("\n#########################")
-        lossClases = [[0,0]] * w["w"].shape[0]
         lossTotal = 0
         N = self.X.shape[0]
         for i in range(N):
             L_i = self.hingeLoss_i(w["w"], self.X[i], self.Y[i])
             lossTotal += L_i
-            lossClases[self.Y[i]][0] += L_i  # Suma del Loss para la clase sub_i
-            lossClases[self.Y[i]][1] += 1    # Contador de X's de esa clase
-
-        #print(lossClases)
-        
-        for i in range(len(lossClases)):
-            w["Li"][i] = lossClases[i][0] / lossClases[i][1]
             
         w["L"] = lossTotal / N
         #print(w["w"])
@@ -102,20 +95,27 @@ class GenAlgorithm:
             count += 1
             newW_s = []
 
-            for i in range(self.W_s.shape[0]):
-                self.hingeLoss_W(self.W_s[i])
-                self.W_s[i]["E"] = (np.sum(np.equal(self.classifyTrain(self.X, self.W_s[i]["w"]), self.Y)) / len(self.Y))                
+            for w in range(self.W_s.shape[0]):
+                self.hingeLoss_W(self.W_s[w])
+                predicted_Y = self.classifyTrain(self.X, self.W_s[w]["w"])
+                self.W_s[w]["E"] = (np.sum(np.equal(predicted_Y, self.Y)) / len(self.Y))
+                
+                for j in range(predicted_Y.size):
+                    if(predicted_Y[j] == self.Y[j]):
+                        self.W_s[w]["E_i"][predicted_Y[j]] += 1
+
+                for k in range(self.W_s[w]["E_i"].size):
+                    self.W_s[w]["E_i"][k] /= (self.X.shape[0] // self.W_s[w]["E_i"].size)
                 
             self.W_s = np.sort(self.W_s, order="E")
 
             self.W_s = self.W_s[::-1]
 
-            masAptos = self.W_s[:int(self.W_s.shape[0]*0.5)]
-
             print(self.W_s.shape[0])
 
-            if (self.W_s[i]["E"] >= self.actual_hyper["min_Aceptacion"]) or (self.W_s.shape[0] < 10):
+            masAptos = self.W_s[:int(self.W_s.shape[0]*0.5)]
 
+            if (self.W_s[0]["E"] >= self.actual_hyper["min_Aceptacion"]) or (self.W_s.shape[0] < 10):
                 break
 
             indMenosAptos = self.W_s.shape[0] - int(self.W_s.shape[0]*self.actual_hyper["cant_MenosAptos"])
@@ -210,7 +210,7 @@ def main(prueba):
         X = iris['data']
         Y = iris['target']
 
-        genAlg.addHyperparameter(0, 2000, 10, 0.1, 0.85)
+        genAlg.addHyperparameter(0, 1000, 10, 0.1, 0.85)
         genAlg.addHyperparameter(0, 100, 10, 0.05, 2.0)
 
         genAlg.actual_hyper = genAlg.hyperparameters[0]
@@ -219,9 +219,17 @@ def main(prueba):
 
         predict_Y = genAlg.classify(X)
 
-        print(genAlg.W["w"])
-        print(genAlg.W["E"])
-        print(genAlg.W["L"])
+        print("W: ",genAlg.W["w"])
+        print("Eficiencia: ", genAlg.W["E"])
+        print("Loss: ", genAlg.W["L"])
+        print("Eficiencia i: ", genAlg.W["E_i"])
+
+        
+        print(genAlg.W["E_i"][0]*50)
+        
+        print(genAlg.W["E_i"][1]*50)
+        
+        print(genAlg.W["E_i"][2]*50)
 
         print(np.array(predict_Y))
         print(Y)
@@ -263,6 +271,7 @@ def main(prueba):
         print(genAlg.W["w"])
         print(genAlg.W["E"])
         print(genAlg.W["L"])
+        print(genAlg.W["E_i"])
 
         print(np.array(predict_Y))
         print(testY)

@@ -4,7 +4,7 @@ mini = 0
 maxi = 255
 
 # self.type = np.dtype([("image",np.float64), ("label", np.str_,16)])
-tipo = np.dtype([("w",np.float32,(4,1024)),("E",np.float32),("L",np.float32),("Li",np.float32,(4,))])
+tipo = np.dtype([("w",np.float32,(4,1024)),("E",np.float32),("L",np.float32),("E_i",np.float32,(4,))])
 
 
 def generateRoW():
