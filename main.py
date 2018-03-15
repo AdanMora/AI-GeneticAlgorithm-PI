@@ -24,7 +24,9 @@ class GenAlgorithm:
     hyperparameters = []
     actual_hyper = {}
     tipoD = None
-    EficienciaW_Apto = []
+    Hist_Eficiencia = []
+    Hist_Loss = []
+    CantTotal_Gen = 0
 
     def addHyperparameter(self, tipo, cantWs, gen, cant_menosAptos, minAceptacion):
         """Recibe tipo, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
@@ -75,6 +77,28 @@ class GenAlgorithm:
         nW = [0]*N
         for i in range(N):
             nW[i] = np.concatenate((W1["w"][i][:N//2],W2["w"][i][N//2:]))
+
+        return np.array((nW,0,0,[0]*N), dtype = self.tipoD)
+
+    def mkCruceMutacion(self, W1, W2):
+        N = W1["w"].shape[0]
+        nW = [0]*N
+        for i in range(N):
+            if(W1["E_i"][i] >= 0.95 and W2["E_i"][i] >= 0.95):
+                if(W1["E_i"][i] >= W2["E_i"][i] >= 0.95):
+                    nW[i] = W1["w"][i]
+                else:
+                    nW[i] = W2["w"][i]
+                    
+            elif(W1["E_i"][i] >= 0.95):
+                nW[i] = W1["w"][i]
+                
+            elif (W2["E_i"][i] >= 0.95):
+                nW[i] = W2["w"][i]
+                
+            else:
+                nW[i] = np.concatenate((W1["w"][i][:N//2],W2["w"][i][N//2:]))
+                
         return np.array((nW,0,0,[0]*N), dtype = self.tipoD)
 
     def train(self, X, Y):
@@ -82,7 +106,9 @@ class GenAlgorithm:
            la clase a la que corresponde cada uno de los datos. Aquí se entrena el Algoritmo Genético."""
         self.X = X
         self.Y = Y
-
+        self.Hist_Eficiencia = []
+        self.Hist_Loss = []
+        self.CantTotal_Gen = 0
 
         # Generar W's
 
@@ -90,9 +116,8 @@ class GenAlgorithm:
 
         # Calcular Loss, general y por clase
         ## ...
-        count = 0
         for i in range(self.actual_hyper["cant_Gen"]):
-            count += 1
+            self.CantTotal_Gen +=1
             newW_s = []
 
             for w in range(self.W_s.shape[0]):
@@ -115,6 +140,9 @@ class GenAlgorithm:
 
             masAptos = self.W_s[:int(self.W_s.shape[0]*0.5)]
 
+            self.Hist_Eficiencia.append(masAptos[0]["E"])
+            self.Hist_Loss.append(masAptos[0]["L"])
+
             if (self.W_s[0]["E"] >= self.actual_hyper["min_Aceptacion"]) or (self.W_s.shape[0] < 10):
                 break
 
@@ -130,11 +158,11 @@ class GenAlgorithm:
             cruce2 = masAptos[diferencia:]
 
             
-            for i in range(cruce1.shape[0] - 1):
-                newW_s.append(self.mkCruce(cruce1[i], cruce1[i + 1]))
+            for i in range(cruce1.shape[0] - 1):                        # Cruceeeeee
+                newW_s.append(self.mkCruceMutacion(cruce1[i], cruce1[i + 1]))
                 
             for i in range(N_menosAptos):
-                newW_s.append(self.mkCruce(cruce2[i], menosAptos[i]))
+                newW_s.append(self.mkCruceMutacion(cruce2[i], menosAptos[i]))
 
 
             self.W_s = np.array(newW_s)
@@ -158,6 +186,26 @@ class GenAlgorithm:
             predict_Y.append(np.argmax(np.dot(self.W["w"],X[i])))
 
         return np.array(predict_Y)
+
+    def plotGraphic(self, titulo):
+        import matplotlib.pyplot as plt
+        fig1 = plt.figure(figsize = (8,8))
+        plt.subplots_adjust(hspace=0.4)
+        
+        p1 = plt.subplot(2,1,1)
+        l1 = plt.plot(list(range(self.CantTotal_Gen)), self.Hist_Eficiencia, 'g-')
+        xl = plt.xlabel('Generación n')
+        yl = plt.ylabel('% Eficiencia')
+        grd = plt.grid(True)
+
+        p2 = plt.subplot(2,1,2)
+        ll2 = plt.plot(list(range(self.CantTotal_Gen)), self.Hist_Loss, 'c-')
+        xxl = plt.xlabel('Generación n')
+        yyl = plt.ylabel('% Loss')
+        grd1 = plt.grid(True)
+
+        sttl = plt.suptitle(titulo)
+        plt.show()
 
 #-------------------------------------------------------------------------------------------------------#
 
@@ -183,6 +231,8 @@ def RGBtoGrayscale(img):
 
 def plotGrayImage(img):
     from pylab import imshow, show, get_cmap
+
+    print(img)
 
     ind = 0
     m = []
@@ -210,29 +260,43 @@ def main(prueba):
         X = iris['data']
         Y = iris['target']
 
-        genAlg.addHyperparameter(0, 1000, 10, 0.1, 0.85)
-        genAlg.addHyperparameter(0, 100, 10, 0.05, 2.0)
+        genAlg.addHyperparameter(0, 100, 10, 0.1, 0.85) # tipo, poblaciones, generaciones, porcentaje menos aptos, eficiencia mínima
+        genAlg.addHyperparameter(0, 1000, 10, 0.1, 0.9)
+        genAlg.addHyperparameter(0, 5000, 20, 0.05, 0.95)
 
-        genAlg.actual_hyper = genAlg.hyperparameters[0]
+        #for h in range(len(genAlg.hyperparameters)):
+        h = 1
+        
+        print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
+              + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
+              + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
+              + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
+        
+        genAlg.actual_hyper = genAlg.hyperparameters[h]
 
         genAlg.train(X, Y)
 
         predict_Y = genAlg.classify(X)
 
-        print("W: ",genAlg.W["w"])
-        print("Eficiencia: ", genAlg.W["E"])
-        print("Loss: ", genAlg.W["L"])
-        print("Eficiencia i: ", genAlg.W["E_i"])
+        print("\n\nW: \n",genAlg.W["w"])
+        print("\n\nEficiencia: \n", genAlg.W["E"])
+        print("\n\nLoss: \n", genAlg.W["L"])
+        print("\n\nEficiencia i: \n", genAlg.W["E_i"])
 
-        
+    
         print(genAlg.W["E_i"][0]*50)
-        
+    
         print(genAlg.W["E_i"][1]*50)
-        
+    
         print(genAlg.W["E_i"][2]*50)
 
         print(np.array(predict_Y))
         print(Y)
+
+        print(genAlg.Hist_Eficiencia)
+        print(genAlg.Hist_Loss)
+
+        genAlg.plotGraphic("Prueba 1")
     
 
     #----- CIFAR-10 -----#
@@ -259,12 +323,20 @@ def main(prueba):
 
         print("Gray")
 
-        genAlg.addHyperparameter(1, 500, 20, 0.1, 0.8)
+        #for h in range(len(genAlg.hyperparameters)):
+        h = 0
+        
+        genAlg.addHyperparameter(1, 1000, 20, 0.1, 0.8)
         genAlg.addHyperparameter(1, 2000, 10, 0.05, 0.8)
+        
+        print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
+              + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
+              + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
+              + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
 
         genAlg.actual_hyper = genAlg.hyperparameters[0]
 
-        genAlg.train(X, Y)
+        genAlg.train(testX, testY)
 
         predict_Y = genAlg.classify(testX)
 
@@ -272,8 +344,10 @@ def main(prueba):
         print(genAlg.W["E"])
         print(genAlg.W["L"])
         print(genAlg.W["E_i"])
+        
+        print(genAlg.Hist_Eficiencia)
+        print(genAlg.Hist_Loss)
 
-        print(np.array(predict_Y))
-        print(testY)
+        genAlg.plotGraphic("Prueba 1")
 
         plotGrayImage(genAlg.W["w"])
