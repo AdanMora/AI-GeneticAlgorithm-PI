@@ -350,4 +350,6 @@ def main(prueba):
 
         genAlg.plotGraphic("Prueba 1")
 
-        plotGrayImage(genAlg.W["w"])
+        for img in range(genAlg.W["w"].shape[0]):
+            plotGrayImage(genAlg.W["w"][img])
+        
