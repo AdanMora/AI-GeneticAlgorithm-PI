@@ -84,16 +84,16 @@ class GenAlgorithm:
         N = W1["w"].shape[0]
         nW = [0]*N
         for i in range(N):
-            if(W1["E_i"][i] >= 0.95 and W2["E_i"][i] >= 0.95):
-                if(W1["E_i"][i] >= W2["E_i"][i] >= 0.95):
+            if(W1["E_i"][i] >= 0.9 and W2["E_i"][i] >= 0.9):
+                if(W1["E_i"][i] >= W2["E_i"][i] >= 0.9):
                     nW[i] = W1["w"][i]
                 else:
                     nW[i] = W2["w"][i]
                     
-            elif(W1["E_i"][i] >= 0.95):
+            elif(W1["E_i"][i] >= 0.9):
                 nW[i] = W1["w"][i]
                 
-            elif (W2["E_i"][i] >= 0.95):
+            elif (W2["E_i"][i] >= 0.9):
                 nW[i] = W2["w"][i]
                 
             else:
@@ -238,7 +238,7 @@ def RGBtoGrayscale(img):
         B = B[1:]
     return np.array(resultado, dtype= np.float32)
 
-def plotGrayImage(img):
+def plotGrayImage(img, titulo):
     from pylab import imshow, show, get_cmap
 
     print(img)
@@ -356,5 +356,5 @@ def main(prueba):
             genAlg.plotGraphic("Prueba " + str(h+1))
 
             for img in range(genAlg.W["w"].shape[0]):
-                plotGrayImage(genAlg.W["w"][img])
+                plotGrayImage(genAlg.W["w"][img], "Imagen - Clase " + str(img) + "- Prueba " + str(h+1))
         
