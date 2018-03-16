@@ -28,7 +28,7 @@ class GenAlgorithm:
     Hist_Loss = []
     CantTotal_Gen = 0
 
-    def addHyperparameter(self, tipo, cantWs, gen, cant_menosAptos, minAceptacion):
+    def addHyperparameter(self, tipo, cantWs, gen, cant_menosAptos, minAceptacion, minMutacion):
         """Recibe tipo, cantidad de W's, cant de generaciones, cant de cruces con menos aptos,
            mínimo de aceptación para terminar."""
         nHyperParameter = {}
@@ -37,6 +37,7 @@ class GenAlgorithm:
         nHyperParameter["cant_Gen"] = gen
         nHyperParameter["cant_MenosAptos"] = cant_menosAptos
         nHyperParameter["min_Aceptacion"] = minAceptacion
+        nHyperParameter["min_Mutacion"] = minMutacion
 
         self.hyperparameters.append(nHyperParameter)
 
@@ -84,13 +85,13 @@ class GenAlgorithm:
         N = W1["w"].shape[0]
         nW = [0]*N
         for i in range(N):
-            if(W1["E_i"][i] >= 0.9 and W2["E_i"][i] >= 0.9):
-                if(W1["E_i"][i] >= W2["E_i"][i] >= 0.9):
+            if(W1["E_i"][i] >= self.actual_hyper["min_Mutacion"] and W2["E_i"][i] >= self.actual_hyper["min_Mutacion"]):
+                if(W1["E_i"][i] >= W2["E_i"][i] >= self.actual_hyper["min_Mutacion"]):
                     nW[i] = W1["w"][i]
                 else:
                     nW[i] = W2["w"][i]
                     
-            elif(W1["E_i"][i] >= 0.9):
+            elif(W1["E_i"][i] >= self.actual_hyper["min_Mutacion"]):
                 nW[i] = W1["w"][i]
                 
             elif (W2["E_i"][i] >= 0.9):
@@ -269,9 +270,9 @@ def main(prueba):
         X = iris['data']
         Y = iris['target']
 
-        genAlg.addHyperparameter(0, 100, 20, 0.2, 0.8) # tipo, poblaciones, generaciones, porcentaje menos aptos, eficiencia mínima
-        genAlg.addHyperparameter(0, 1000, 10, 0.1, 0.9)
-        genAlg.addHyperparameter(0, 5000, 5, 0.05, 0.95)
+        genAlg.addHyperparameter(0, 100, 20, 0.2, 0.9,0.9) # tipo, poblaciones, generaciones, porcentaje menos aptos, eficiencia mínima, mutacion
+        genAlg.addHyperparameter(0, 1000, 10, 0.1, 0.85,0.8)
+        genAlg.addHyperparameter(0, 5000, 5, 0.05, 0.95,0.9)
 
         for h in range(len(genAlg.hyperparameters)):
         #h = 2
@@ -279,7 +280,8 @@ def main(prueba):
             print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
                   + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
                   + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
-                  + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
+                  + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%\nPorcentaje mínima de mutación: "
+                  + str(genAlg.hyperparameters[h]["min_Mutacion"] * 100) + "%")
             
             genAlg.actual_hyper = genAlg.hyperparameters[h]
 
@@ -328,16 +330,17 @@ def main(prueba):
         testY = test['labels']
 
         print("Gray")
-        genAlg.addHyperparameter(1, 100, 5, 0.1, 0.5)
-        genAlg.addHyperparameter(1, 500, 5, 0.2, 0.5)
-        genAlg.addHyperparameter(1, 1000, 5, 0.3, 0.5)
+        genAlg.addHyperparameter(1, 100, 5, 0.1, 0.5,0.6)
+        genAlg.addHyperparameter(1, 500, 5, 0.2, 0.5,0.7)
+        genAlg.addHyperparameter(1, 1000, 5, 0.3, 0.5,0.8)
 
         for h in range(len(genAlg.hyperparameters)):
         #h = 0            
             print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
                   + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
                   + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
-                  + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
+                  + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%\nPorcentaje mínima de mutación: "
+                  + str(genAlg.hyperparameters[h]["min_Mutacion"] * 100) + "%")
 
             genAlg.actual_hyper = genAlg.hyperparameters[h]
 
