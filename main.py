@@ -3,7 +3,7 @@ import pickle
 from sklearn.datasets import load_iris
 import wifar
 import wiris1 as wiris
-
+import os
 
 
 #-------------------------------------------------------------------------------------------------------#
@@ -78,7 +78,7 @@ class GenAlgorithm:
         for i in range(N):
             nW[i] = np.concatenate((W1["w"][i][:N//2],W2["w"][i][N//2:]))
 
-        return np.array((nW,0,0,[0]*N), dtype = self.tipoD)
+        return np.array((nW,0,0,[0]*N,False), dtype = self.tipoD)
 
     def mkCruceMutacion(self, W1, W2):
         N = W1["w"].shape[0]
@@ -99,7 +99,7 @@ class GenAlgorithm:
             else:
                 nW[i] = np.concatenate((W1["w"][i][:N//2],W2["w"][i][N//2:]))
                 
-        return np.array((nW,0,0,[0]*N), dtype = self.tipoD)
+        return np.array((nW,0,0,[0]*N,False), dtype = self.tipoD)
 
     def train(self, X, Y):
         """Función que realiza el proceso de entrenamiento, recibe el vector de datos de entrenamiento y el vector con
@@ -109,33 +109,41 @@ class GenAlgorithm:
         self.Hist_Eficiencia = []
         self.Hist_Loss = []
         self.CantTotal_Gen = 0
-        W = None
-        W_s = []
+        self.W = None
+        self.W_s = []
 
         # Generar W's
 
         self.genW_s()
 
-        # Calcular Loss, general y por clase
+        # Calcular Loss, Eficiencia general y por clase
         ## ...
-        for i in range(self.actual_hyper["cant_Gen"] + 1):
+        for i in range(self.actual_hyper["cant_Gen"]):
             self.CantTotal_Gen +=1
             
             newW_s = []
 
             print(self.W_s.shape[0])
 
-            for w in range(self.W_s.shape[0]):
-                self.hingeLoss_W(self.W_s[w])
-                predicted_Y = self.classifyTrain(self.X, self.W_s[w]["w"])
-                self.W_s[w]["E"] = (np.sum(np.equal(predicted_Y, self.Y)) / len(self.Y))
-                
-                for j in range(predicted_Y.size):
-                    if(predicted_Y[j] == self.Y[j]):
-                        self.W_s[w]["E_i"][predicted_Y[j]] += 1
+            cont = 0
 
-                for k in range(self.W_s[w]["E_i"].size):
-                    self.W_s[w]["E_i"][k] /= (self.X.shape[0] // self.W_s[w]["E_i"].size)
+            for w in range(self.W_s.shape[0]):
+                if (not(self.W_s[w]["R"])):
+                    cont += 1
+                    self.hingeLoss_W(self.W_s[w])
+                    predicted_Y = self.classifyTrain(self.X, self.W_s[w]["w"])
+                    self.W_s[w]["E"] = (np.sum(np.equal(predicted_Y, self.Y)) / len(self.Y))
+                    
+                    for j in range(predicted_Y.size):
+                        if(predicted_Y[j] == self.Y[j]):
+                            self.W_s[w]["E_i"][predicted_Y[j]] += 1
+
+                    for k in range(self.W_s[w]["E_i"].size):
+                        self.W_s[w]["E_i"][k] /= (self.X.shape[0] // self.W_s[w]["E_i"].size)
+
+                    self.W_s[w]["R"] = True
+
+            print("C: ",cont)
                 
             self.W_s = np.sort(self.W_s, order="E")
 
@@ -205,7 +213,8 @@ class GenAlgorithm:
         grd1 = plt.grid(True)
 
         sttl = plt.suptitle(titulo)
-        plt.show()
+        plt.savefig(os.path.join(os.environ["HOMEPATH"], "Desktop\\" + titulo + "-" + str(self.actual_hyper["tipo"]) + '.png'))
+        #plt.show()
 
 #-------------------------------------------------------------------------------------------------------#
 
@@ -319,35 +328,33 @@ def main(prueba):
         testY = test['labels']
 
         print("Gray")
+        genAlg.addHyperparameter(1, 100, 5, 0.1, 0.5)
+        genAlg.addHyperparameter(1, 500, 5, 0.2, 0.5)
+        genAlg.addHyperparameter(1, 1000, 5, 0.3, 0.5)
 
-        #for h in range(len(genAlg.hyperparameters)):
-        h = 0
-        
-        genAlg.addHyperparameter(1, 2000, 5, 0.1, 0.5)
-        genAlg.addHyperparameter(1, 1000, 10, 0.2, 0.7)
-        genAlg.addHyperparameter(1, 500, 20, 0.3, 0.8)
-        
-        print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
-              + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
-              + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
-              + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
+        for h in range(len(genAlg.hyperparameters)):
+        #h = 0            
+            print("\nPrueba " + str(h+1) + ":\n\nPoblación inicial: " + str(genAlg.hyperparameters[h]["cant_W's"]) + "\nMáximo de generaciones: "
+                  + str(genAlg.hyperparameters[h]["cant_Gen"]) + "\nCantidad de menos aptos para cruzar: "
+                  + str(genAlg.hyperparameters[h]["cant_MenosAptos"] * 100) + "%\nEficiencia mínima de aceptación: "
+                  + str(genAlg.hyperparameters[h]["min_Aceptacion"] * 100) + "%")
 
-        genAlg.actual_hyper = genAlg.hyperparameters[0]
+            genAlg.actual_hyper = genAlg.hyperparameters[h]
 
-        genAlg.train(testX, testY)
+            genAlg.train(testX, testY)
 
-        predict_Y = genAlg.classify(testX)
+            predict_Y = genAlg.classify(testX)
 
-        print(genAlg.W["w"])
-        print(genAlg.W["E"])
-        print(genAlg.W["L"])
-        print(genAlg.W["E_i"])
-        
-        print(genAlg.Hist_Eficiencia)
-        print(genAlg.Hist_Loss)
+            print(genAlg.W["w"])
+            print(genAlg.W["E"])
+            print(genAlg.W["L"])
+            print(genAlg.W["E_i"])
+            
+            print(genAlg.Hist_Eficiencia)
+            print(genAlg.Hist_Loss)
 
-        genAlg.plotGraphic("Prueba 1")
+            genAlg.plotGraphic("Prueba " + str(h+1))
 
-        for img in range(genAlg.W["w"].shape[0]):
-            plotGrayImage(genAlg.W["w"][img])
+            for img in range(genAlg.W["w"].shape[0]):
+                plotGrayImage(genAlg.W["w"][img])
         

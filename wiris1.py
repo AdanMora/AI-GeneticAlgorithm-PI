@@ -1,9 +1,8 @@
 import numpy as np
 
-tipo = np.dtype([("w",np.float32,(3,4)),("E",np.float32),("L",np.float32),("E_i",np.float32,(3,))])
+tipo = np.dtype([("w",np.float32,(3,4)),("E",np.float32),("L",np.float32),("E_i",np.float32,(3,)), ("R",bool)])
 
 def generateRoW():
-    #values = iris_values[flower]
     minimo = 0.0
     maximo = 10.0
     sepal_length = np.random.uniform(low=minimo,high=maximo,size=(1,))
@@ -23,7 +22,7 @@ def generateW():
 def generateWs(n):
     ws = []
     for i in range(n):
-        ws.append((generateW(),0,0,[0,0,0]))
+        ws.append((generateW(),0,0,[0,0,0],False))
     return np.array(ws,dtype=tipo)
 
 def generateIndividuos(ws):
