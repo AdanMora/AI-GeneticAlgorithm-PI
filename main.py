@@ -313,23 +313,26 @@ def main(prueba):
     #----- CIFAR-10 -----#
 
     else: 
-        train = unpickle("train.p")
+        #train = unpickle("train.p")
         test = unpickle("test.p")
 
 
-        X = train['data']
+        #X = train['data']
         testX = test['data']
         nX = []
         ntX = []
-        for i in range(X.shape[0]):
+        """for i in range(X.shape[0]):
             nX.append(RGBtoGrayscale(X[i]))
             if(i < testX.shape[0]):
-                ntX.append(RGBtoGrayscale(testX[i]))
+                ntX.append(RGBtoGrayscale(testX[i]))"""
 
-        X = np.array(nX)
+        for i in range(testX.shape[0]):
+            ntX.append(RGBtoGrayscale(testX[i]))
+
+        #X = np.array(nX)
         testX = np.array(ntX)
 
-        Y = train['labels']
+        #Y = train['labels']
         testY = test['labels']
 
         print("Gray")
